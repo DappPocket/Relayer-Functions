@@ -9,6 +9,7 @@
     "logs": "firebase functions:log"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "ethers": "^4.0.43",
     "express": "^4.17.1",
     "firebase-admin": "~7.0.0",

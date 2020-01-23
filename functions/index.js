@@ -1,4 +1,6 @@
 const functions = require('firebase-functions');
+const express = require('express');
+const cors = require('cors');
 const ethers = require('ethers');
 
 // Relayer Wallet
@@ -63,6 +65,30 @@ const relayerMetaTx = functions.https.onRequest((request, response) => {
         });
 });
 
+// Create relayer server
+const relayer = express();
+
+// Set CORS
+relayer.use(cors({ origin: true }));
+
+// Meta Tx (Verify Tx) with CORS
+relayer.post('/metaTx', (request, response) => {
+    console.log('request: ', request.body);
+    const body = (typeof request.body === 'string') ? JSON.parse(request.body) : request.body; // workaround of firebase bug
+    const { contractAddress, signer, method, param, r, s, v } = body;
+
+    const contract = new ethers.Contract(contractAddress, CONTRACT_ABI, defaultProvider);
+    const contractWithRelayer = contract.connect(wallet);
+    contractWithRelayer.verifyMeta(signer, method, param, r, s, v)
+        .then((res) => {
+            response.send({ hash: res.hash });
+        })
+        .catch((err) => {
+            response.status(401).send({ error: err });
+        });
+})
+
 exports.relayerSmile = relayerSmile;
 exports.relayerMetaTx= relayerMetaTx;
 exports.relayerBalance = relayerBalance;
+exports.relayer = functions.https.onRequest(relayer);
