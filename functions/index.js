@@ -48,7 +48,10 @@ const relayerSmile = functions.https.onRequest((request, response) => {
 
 // Meta Tx (Verify Tx)
 const relayerMetaTx = functions.https.onRequest((request, response) => {
-    const { contractAddress, signer, method, param, r, s, v } = request.body;
+    console.log('request: ', request.body);
+    const body = (typeof request.body === 'string') ? JSON.parse(request.body) : request.body; // workaround of firebase bug
+    const { contractAddress, signer, method, param, r, s, v } = body;
+
     const contract = new ethers.Contract(contractAddress, CONTRACT_ABI, defaultProvider);
     const contractWithRelayer = contract.connect(wallet);
     contractWithRelayer.verifyMeta(signer, method, param, r, s, v)
